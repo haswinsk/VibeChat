@@ -4,6 +4,9 @@ import useAuthStore from '../store/useAuthStore';
 const ProtectedAdminRoute = ({ children }) => {
   const { user, isLoading } = useAuthStore();
 
+  // Check if admin token exists in localStorage
+  const adminToken = localStorage.getItem('admin-token');
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-dark-bg">
@@ -12,18 +15,13 @@ const ProtectedAdminRoute = ({ children }) => {
     );
   }
 
-  // Not authenticated
-  if (!user) {
+  // No admin token - not authenticated as admin
+  if (!adminToken) {
+    console.warn('[ADMIN ROUTE] No admin token found');
     return <Navigate to="/admin-login" replace />;
   }
 
-  // Not admin - redirect to admin login for verification
-  if (!user.isAdmin) {
-    console.warn('[ADMIN] Unauthorized access attempt by:', user.email);
-    return <Navigate to="/admin-login" replace />;
-  }
-
-  // Admin authenticated
+  // Admin authenticated - let backend middleware verify the actual permissions
   return children;
 };
 
