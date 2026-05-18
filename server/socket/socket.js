@@ -9,10 +9,8 @@ const userSocketMap = {}; // userId: socketId
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: process.env.NODE_ENV === 'production' 
-        ? 'https://your-frontend-domain.vercel.app' 
-        : ['http://localhost:5173', 'http://localhost:5174'],
-      methods: ['GET', 'POST'],
+      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      methods: ["GET", "POST"],
       credentials: true,
     },
   });

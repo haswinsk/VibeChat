@@ -4,6 +4,7 @@ import { toastInfo, toastError, toastSuccess } from '../components/ToastProvider
 
 // Initialize socket with reconnection strategy
 export const socket = io(import.meta.env.VITE_SOCKET_URL, {
+  withCredentials: true,
   transports: ['websocket'],
   reconnection: true,
   reconnectionAttempts: 10,
