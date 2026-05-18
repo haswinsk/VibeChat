@@ -213,41 +213,10 @@ export const deleteUser = async (req, res) => {
     console.log(`[ADMIN DELETE] Found user: ${user.email}. Proceeding with deletion...`);
 
     // Soft delete - mark as deleted instead of hard delete
-    try {
-      user.isDeleted = true;
-      user.deletedAt = new Date();
-      await user.save();
-      console.log(`[ADMIN DELETE] User marked as deleted`);
-    } catch (error) {
-      console.error('[ADMIN DELETE] Error marking user as deleted:', error);
-      throw error;
-    }
-
-    // Delete all messages from/to this user
-    try {
-      const messageDeleteResult = await Message.deleteMany({
-        $or: [
-          { senderId: id },
-          { receiverId: id }
-        ]
-      });
-      console.log(`[ADMIN DELETE] Deleted ${messageDeleteResult.deletedCount} messages`);
-    } catch (error) {
-      console.error('[ADMIN DELETE] Error deleting messages:', error);
-      throw error;
-    }
-
-    // Remove user from music rooms
-    try {
-      const musicRoomUpdateResult = await MusicRoom.updateMany(
-        { users: id },
-        { $pull: { users: id } }
-      );
-      console.log(`[ADMIN DELETE] Removed user from ${musicRoomUpdateResult.modifiedCount} music rooms`);
-    } catch (error) {
-      console.error('[ADMIN DELETE] Error removing user from music rooms:', error);
-      throw error;
-    }
+    user.isDeleted = true;
+    user.deletedAt = new Date();
+    await user.save();
+    console.log(`[ADMIN DELETE] User marked as deleted`);
 
     console.log(`[ADMIN] User deleted: ${user.email}`);
 
