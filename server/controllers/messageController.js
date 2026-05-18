@@ -60,6 +60,7 @@ export const sendMessage = async (req, res) => {
     // Emit socket event to notify receiver and all users
     try {
       const io = getIo();
+      console.log('[MESSAGE] Emitting receiveMessage and userListUpdated');
       io.emit('receiveMessage', newMessage);
       io.emit('userListUpdated'); // Notify all clients to refresh user list
     } catch (error) {

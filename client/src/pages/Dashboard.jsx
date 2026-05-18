@@ -9,7 +9,7 @@ import { socket } from '../socket/socket';
 
 const Dashboard = () => {
   const { user } = useAuthStore();
-  const { addMessage, selectedUser, updateUserStatus, markMessagesAsRead, updateMessagesAsReadByReceiver, updateMessageLocally, getUsers } = useChatStore();
+  const { addMessage, selectedUser, updateUserStatus, markMessagesAsRead, updateMessagesAsReadByReceiver, updateMessageLocally } = useChatStore();
   const { joinMusicRoom } = useMusic();
 
   useEffect(() => {
@@ -18,6 +18,7 @@ const Dashboard = () => {
       socket.emit('userConnected', user._id);
 
       socket.on('receiveMessage', (message) => {
+        console.log('[SOCKET] Received message, refreshing users...');
         const currentSelectedUser = useChatStore.getState().selectedUser;
         const senderId = message.senderId?._id || message.senderId;
         if (currentSelectedUser && currentSelectedUser._id === senderId) {
@@ -31,7 +32,7 @@ const Dashboard = () => {
           useChatStore.getState().incrementUnreadCount(senderId);
         }
         // Refresh users list to re-sort by latest message
-        getUsers();
+        useChatStore.getState().getUsers();
       });
 
       socket.on('messagesRead', ({ readerId }) => {
@@ -40,12 +41,14 @@ const Dashboard = () => {
 
       socket.on('messageSent', () => {
         // Refresh users list when any message is sent
-        getUsers();
+        console.log('[SOCKET] messageSent event received');
+        useChatStore.getState().getUsers();
       });
 
       socket.on('userListUpdated', () => {
         // Server notified us to refresh user list
-        getUsers();
+        console.log('[SOCKET] userListUpdated event received');
+        useChatStore.getState().getUsers();
       });
 
       socket.on('inviteStatusUpdated', (updatedMessage) => {
@@ -83,7 +86,7 @@ const Dashboard = () => {
         socket.disconnect();
       };
     }
-  }, [user?._id, joinMusicRoom, getUsers]);
+  }, [user?._id, joinMusicRoom]);
 
   return (
     <div className="h-screen flex flex-col bg-dark-bg overflow-hidden">

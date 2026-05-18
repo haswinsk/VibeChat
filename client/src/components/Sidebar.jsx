@@ -6,8 +6,9 @@ const Sidebar = () => {
   const { users, getUsers, selectedUser, setSelectedUser, isUsersLoading, resetUnreadCount } = useChatStore();
 
   useEffect(() => {
+    console.log('[SIDEBAR] Mounting, fetching users');
     getUsers();
-  }, [getUsers]);
+  }, []);
 
   if (isUsersLoading) {
     return (

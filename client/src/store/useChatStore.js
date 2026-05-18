@@ -13,6 +13,7 @@ const useChatStore = create((set, get) => ({
     set({ isUsersLoading: true });
     try {
       const { data } = await api.get('/messages/users');
+      console.log('[STORE] Users fetched and updated:', data.length, 'users');
       set({ users: data });
     } catch (error) {
       console.error('Error fetching users:', error);
