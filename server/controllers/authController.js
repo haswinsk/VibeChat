@@ -26,13 +26,16 @@ export const authUser = async (req, res) => {
   console.log('[LOGIN] Login successful for:', email);
   const token = generateToken(res, user._id);
 
-  res.json({
+  console.log('[LOGIN] About to send response with token:', token ? 'Present' : 'MISSING');
+  const response = {
     _id: user._id,
     name: user.name,
     email: user.email,
     profilePic: user.profilePic,
     token: token,
-  });
+  };
+  console.log('[LOGIN] Response object:', response);
+  res.json(response);
 };
 
 // @desc    Register a new user
@@ -58,13 +61,16 @@ export const registerUser = async (req, res) => {
     console.log('[SIGNUP] New user created:', email);
     const token = generateToken(res, user._id);
 
-    res.status(201).json({
+    console.log('[SIGNUP] About to send response with token:', token ? 'Present' : 'MISSING');
+    const response = {
       _id: user._id,
       name: user.name,
       email: user.email,
       profilePic: user.profilePic,
       token: token,
-    });
+    };
+    console.log('[SIGNUP] Response object:', response);
+    res.status(201).json(response);
   } else {
     res.status(400).json({ message: 'Invalid user data' });
   }

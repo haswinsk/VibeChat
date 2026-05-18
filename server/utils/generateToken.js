@@ -5,6 +5,8 @@ const generateToken = (res, userId) => {
     expiresIn: '30d',
   });
 
+  console.log('[GENERATE TOKEN] Token created:', token ? 'Success' : 'Failed');
+
   res.cookie('jwt', token, {
     httpOnly: true,
     secure: true, // Always true for cross-site cookies in production
@@ -12,6 +14,7 @@ const generateToken = (res, userId) => {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
+  console.log('[GENERATE TOKEN] Cookie set');
   return token;
 };
 
