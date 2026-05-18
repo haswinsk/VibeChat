@@ -172,7 +172,7 @@ const ChatBox = () => {
       <ChatHeader />
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col-reverse">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {isMessagesLoading ? (
           <div className="h-full flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
