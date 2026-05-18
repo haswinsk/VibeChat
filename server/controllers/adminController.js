@@ -8,8 +8,8 @@ import MusicRoom from '../models/MusicRoom.js';
 // @access  Private/Admin
 export const getAdminStats = async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments();
-    const onlineUsers = await User.countDocuments({ onlineStatus: true });
+    const totalUsers = await User.countDocuments({ $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }] });
+    const onlineUsers = await User.countDocuments({ onlineStatus: true, $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }] });
     const totalMessages = await Message.countDocuments();
     const totalRooms = await Room.countDocuments();
     const activeMusicRooms = await MusicRoom.countDocuments();
@@ -40,7 +40,7 @@ export const getAdminStats = async (req, res) => {
 // @access  Private/Admin
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({ isDeleted: false })
+    const users = await User.find({ $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }] })
       .select('-password')
       .sort({ createdAt: -1 })
       .limit(100);
