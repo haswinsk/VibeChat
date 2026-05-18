@@ -10,14 +10,14 @@ export const authUser = async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
-    generateToken(res, user._id);
+    const token = generateToken(res, user._id);
 
     res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
       profilePic: user.profilePic,
-      token: req.cookies?.jwt, // return token explicitly for client use if needed
+      token: token, // return token explicitly for client use as fallback
     });
   } else {
     res.status(401).json({ message: 'Invalid email or password' });
