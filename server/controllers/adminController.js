@@ -40,7 +40,7 @@ export const getAdminStats = async (req, res) => {
 // @access  Private/Admin
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find()
+    const users = await User.find({ isDeleted: false })
       .select('-password')
       .sort({ createdAt: -1 })
       .limit(100);
@@ -212,9 +212,10 @@ export const deleteUser = async (req, res) => {
     
     console.log(`[ADMIN DELETE] Found user: ${user.email}. Proceeding with deletion...`);
 
-
-    // Delete user
-    await User.findByIdAndDelete(id);
+    // Soft delete - mark as deleted instead of hard delete
+    user.isDeleted = true;
+    user.deletedAt = new Date();
+    await user.save();
 
     // Delete all messages from/to this user
     await Message.deleteMany({
