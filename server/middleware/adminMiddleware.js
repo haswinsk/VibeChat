@@ -6,8 +6,8 @@ export const adminProtect = async (req, res, next) => {
     let token;
 
     // Get token from cookies or Authorization header
-    if (req.cookies.jwt) {
-      token = req.cookies.jwt;
+    if (req.cookies['admin-token']) {
+      token = req.cookies['admin-token'];
     } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
