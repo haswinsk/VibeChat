@@ -57,12 +57,11 @@ export const sendMessage = async (req, res) => {
     // Populate sender info if needed
     await newMessage.populate('senderId', 'name profilePic');
 
-    // Emit socket event to notify receiver and all users
+    // Emit socket event to notify receiver only
     try {
       const io = getIo();
-      console.log('[MESSAGE] Emitting receiveMessage and userListUpdated');
-      io.emit('receiveMessage', newMessage);
-      io.emit('userListUpdated'); // Notify all clients to refresh user list
+      console.log('[MESSAGE] Emitting receiveMessage to receiver:', receiverId);
+      io.to(receiverId.toString()).emit('receiveMessage', newMessage);
     } catch (error) {
       console.log('[SOCKET] Warning: Could not emit socket event:', error.message);
     }
