@@ -6,7 +6,9 @@ import useAuthStore from './store/useAuthStore';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import { MusicProvider } from './context/MusicContext';
 import GlobalMusicPlayer from './components/GlobalMusicPlayer';
 
@@ -41,6 +43,14 @@ function App() {
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedAdminRoute>
+                <AdminDashboard />
+              </ProtectedAdminRoute>
             } 
           />
           <Route path="*" element={<Navigate to="/" replace />} />
