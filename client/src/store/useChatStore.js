@@ -132,6 +132,19 @@ const useChatStore = create((set, get) => ({
       user._id === userId ? { ...user, unreadCount: 0 } : user
     )
   })),
+
+  moveUserToTop: (userId) => set((state) => {
+    // Find the user and move to top instantly
+    const userIndex = state.users.findIndex(u => u._id === userId);
+    if (userIndex > 0) {
+      const newUsers = [...state.users];
+      const [movedUser] = newUsers.splice(userIndex, 1);
+      newUsers.unshift(movedUser);
+      console.log('[STORE] User moved to top:', userId);
+      return { users: newUsers };
+    }
+    return state;
+  }),
 }));
 
 export default useChatStore;

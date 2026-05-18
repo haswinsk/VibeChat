@@ -10,7 +10,7 @@ import VoiceMessagePlayer from './VoiceMessagePlayer';
 import ChatHeader from './ChatHeader';
 
 const ChatBox = () => {
-  const { selectedUser, setSelectedUser, messages, getMessages, isMessagesLoading, sendMessage, clearChat, markMessagesAsRead, sendMusicInvite, updateInviteStatus } = useChatStore();
+  const { selectedUser, setSelectedUser, messages, getMessages, isMessagesLoading, sendMessage, clearChat, markMessagesAsRead, sendMusicInvite, updateInviteStatus, moveUserToTop } = useChatStore();
   const { user } = useAuthStore();
   const { joinMusicRoom, roomId: activeRoomId, isMinimized } = useMusic();
 
@@ -116,6 +116,9 @@ const ChatBox = () => {
     };
 
     const sentMessage = await sendMessage(messageData);
+
+    // Move this user to top instantly!
+    moveUserToTop(selectedUser._id);
 
     // Emit through socket
     socket.emit('sendMessage', {

@@ -9,7 +9,7 @@ import { socket } from '../socket/socket';
 
 const Dashboard = () => {
   const { user } = useAuthStore();
-  const { addMessage, selectedUser, updateUserStatus, markMessagesAsRead, updateMessagesAsReadByReceiver, updateMessageLocally } = useChatStore();
+  const { addMessage, selectedUser, updateUserStatus, markMessagesAsRead, updateMessagesAsReadByReceiver, updateMessageLocally, moveUserToTop } = useChatStore();
   const { joinMusicRoom } = useMusic();
 
   useEffect(() => {
@@ -18,7 +18,7 @@ const Dashboard = () => {
       socket.emit('userConnected', user._id);
 
       socket.on('receiveMessage', (message) => {
-        console.log('[SOCKET] Received message, refreshing users...');
+        console.log('[SOCKET] Received message, moving user to top...');
         const currentSelectedUser = useChatStore.getState().selectedUser;
         const senderId = message.senderId?._id || message.senderId;
         if (currentSelectedUser && currentSelectedUser._id === senderId) {
@@ -31,8 +31,8 @@ const Dashboard = () => {
         } else {
           useChatStore.getState().incrementUnreadCount(senderId);
         }
-        // Refresh users list to re-sort by latest message
-        useChatStore.getState().getUsers();
+        // Move user to top instantly - no API call needed!
+        moveUserToTop(senderId);
       });
 
       socket.on('messagesRead', ({ readerId }) => {
@@ -42,13 +42,16 @@ const Dashboard = () => {
       socket.on('messageSent', () => {
         // Refresh users list when any message is sent
         console.log('[SOCKET] messageSent event received');
-        useChatStore.getState().getUsers();
+        // Don't call getUsers() - it will be handled by userListUpdated
       });
 
       socket.on('userListUpdated', () => {
-        // Server notified us to refresh user list
+        // Server notified us - move the sender to top
         console.log('[SOCKET] userListUpdated event received');
-        useChatStore.getState().getUsers();
+        const selectedUser = useChatStore.getState().selectedUser;
+        if (selectedUser) {
+          moveUserToTop(selectedUser._id);
+        }
       });
 
       socket.on('inviteStatusUpdated', (updatedMessage) => {
