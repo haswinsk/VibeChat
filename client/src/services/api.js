@@ -9,8 +9,20 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     try {
-      // Try to get token from separate storage first
-      let token = localStorage.getItem('auth-token');
+      // Check if this is an admin request
+      const isAdminRequest = config.url.includes('/admin');
+      
+      let token;
+      
+      if (isAdminRequest) {
+        // Use admin token for admin endpoints
+        token = localStorage.getItem('admin-token');
+      }
+      
+      // Use regular auth token for other endpoints
+      if (!token) {
+        token = localStorage.getItem('auth-token');
+      }
       
       // Fallback to getting from auth-storage
       if (!token) {
@@ -23,7 +35,7 @@ api.interceptors.request.use(
       
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log('[API] Authorization header set with token');
+        console.log(`[API] Authorization header set ${isAdminRequest ? '(admin)' : '(auth)'}`);
       } else {
         console.log('[API] No token found');
       }

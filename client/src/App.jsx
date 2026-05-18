@@ -6,6 +6,7 @@ import useAuthStore from './store/useAuthStore';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
@@ -45,6 +46,7 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          <Route path="/admin-login" element={<AdminLogin />} />
           <Route 
             path="/admin" 
             element={

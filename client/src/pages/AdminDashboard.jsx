@@ -40,8 +40,14 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = () => {
+    // Clear admin token
+    localStorage.removeItem('admin-token');
+    
+    // Logout from auth store
     logout();
-    window.location.href = '/login';
+    
+    // Redirect to login
+    window.location.href = '/admin-login';
   };
 
   if (loading && !stats) {

@@ -9,6 +9,7 @@ import messageRoutes from './routes/messageRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import adminAuthRoutes from './routes/adminAuthRoutes.js';
 import { initSocket } from './socket/socket.js';
 
 dotenv.config();
@@ -36,6 +37,7 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin-auth', adminAuthRoutes); // Admin login routes
 app.use('/api/messages', messageRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/upload', uploadRoutes);
