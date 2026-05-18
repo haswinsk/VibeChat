@@ -81,10 +81,48 @@ export const getUsersForSidebar = async (req, res) => {
       if (item._id) unreadMap[item._id.toString()] = item.count;
     });
 
+    // Get last message timestamp for each user
+    const lastMessages = await Message.aggregate([
+      {
+        $match: {
+          $or: [
+            { senderId: req.user._id },
+            { receiverId: req.user._id }
+          ]
+        }
+      },
+      { $sort: { createdAt: -1 } },
+      {
+        $group: {
+          _id: {
+            $cond: [
+              { $eq: ['$senderId', req.user._id] },
+              '$receiverId',
+              '$senderId'
+            ]
+          },
+          lastMessageTime: { $first: '$createdAt' }
+        }
+      }
+    ]);
+
+    const lastMessageMap = {};
+    lastMessages.forEach(item => {
+      if (item._id) lastMessageMap[item._id.toString()] = item.lastMessageTime;
+    });
+
     const usersWithUnread = users.map(user => ({
       ...user,
-      unreadCount: unreadMap[user._id.toString()] || 0
+      unreadCount: unreadMap[user._id.toString()] || 0,
+      lastMessageTime: lastMessageMap[user._id.toString()] || null
     }));
+
+    // Sort by most recent message first
+    usersWithUnread.sort((a, b) => {
+      const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
+      const timeB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
+      return timeB - timeA;
+    });
 
     res.status(200).json(usersWithUnread);
   } catch (error) {
