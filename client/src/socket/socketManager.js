@@ -5,12 +5,16 @@ import { toastInfo, toastError, toastSuccess } from '../components/ToastProvider
 // Initialize socket with reconnection strategy
 export const socket = io(import.meta.env.VITE_SOCKET_URL, {
   withCredentials: true,
-  transports: ['websocket'],
+  transports: ['websocket', 'polling'],
   reconnection: true,
   reconnectionAttempts: 10,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
+  path: '/socket.io',
+  reconnectionDelayMax: 10000,
 });
+
+console.log('[SOCKET] Connecting to:', import.meta.env.VITE_SOCKET_URL);
 
 // Track connection status for UI components
 let isConnected = false;

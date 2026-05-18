@@ -9,20 +9,22 @@ const userSocketMap = {}; // userId: socketId
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      origin: [process.env.CLIENT_URL, 'https://vibe-chat-lake.vercel.app', 'http://localhost:5173', 'http://localhost:5174'],
       methods: ["GET", "POST"],
       credentials: true,
+      allowEIO3: true,
     },
+    transports: ['websocket', 'polling'],
   });
 
   io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
+    console.log('[SOCKET] New connection:', socket.id);
+    console.log('[SOCKET] Client origin:', socket.handshake.headers.origin);
 
     // When a user connects and provides their userId
     socket.on('userConnected', async (userId) => {
       userSocketMap[userId] = socket.id;
-      // Update user online status
-      await User.findByIdAndUpdate(userId, { onlineStatus: true });
+      console.log('[SOCKET] User connected:', userId, 'socket:', socket.id);
       io.emit('updateUserStatus', { userId, isOnline: true });
     });
 

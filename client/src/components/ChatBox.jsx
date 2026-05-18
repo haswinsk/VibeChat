@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Send, Image as ImageIcon, Loader2, Download, Trash2, CheckCheck, Mic } from 'lucide-react';
+import { Send, Image as ImageIcon, Loader2, Download, Trash2, CheckCheck, Mic, Music } from 'lucide-react';
 import useChatStore from '../store/useChatStore';
 import useAuthStore from '../store/useAuthStore';
 import { socket } from '../socket/socket';
