@@ -9,18 +9,26 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     try {
-      const authStorageStr = localStorage.getItem('auth-storage');
-      if (authStorageStr) {
-        const authStore = JSON.parse(authStorageStr);
-        const token = authStore?.state?.user?.token;
-        
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-          console.log('[API] Token added to headers');
+      // Try to get token from separate storage first
+      let token = localStorage.getItem('auth-token');
+      
+      // Fallback to getting from auth-storage
+      if (!token) {
+        const authStorageStr = localStorage.getItem('auth-storage');
+        if (authStorageStr) {
+          const authStore = JSON.parse(authStorageStr);
+          token = authStore?.state?.user?.token;
         }
       }
+      
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('[API] Authorization header set with token');
+      } else {
+        console.log('[API] No token found');
+      }
     } catch (error) {
-      console.error('[API] Error reading token from localStorage:', error);
+      console.error('[API] Error reading token:', error);
     }
     return config;
   },

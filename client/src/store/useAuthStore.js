@@ -28,6 +28,14 @@ const useAuthStore = create(
         set({ isLoading: true, error: null });
         try {
           const { data } = await api.post('/auth/login', { email, password });
+          console.log('[AUTH STORE] Login response:', data);
+          
+          // Ensure token is explicitly saved
+          if (data?.token) {
+            localStorage.setItem('auth-token', data.token);
+            console.log('[AUTH STORE] Token saved to localStorage');
+          }
+          
           set({ user: data, isAuthenticated: true });
           return true;
         } catch (error) {
@@ -42,6 +50,14 @@ const useAuthStore = create(
         set({ isLoading: true, error: null });
         try {
           const { data } = await api.post('/auth/signup', { name, email, password });
+          console.log('[AUTH STORE] Signup response:', data);
+          
+          // Ensure token is explicitly saved
+          if (data?.token) {
+            localStorage.setItem('auth-token', data.token);
+            console.log('[AUTH STORE] Token saved to localStorage');
+          }
+          
           set({ user: data, isAuthenticated: true });
           return true;
         } catch (error) {
