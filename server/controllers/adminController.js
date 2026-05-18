@@ -213,9 +213,10 @@ export const deleteUser = async (req, res) => {
     console.log(`[ADMIN DELETE] Found user: ${user.email}. Proceeding with deletion...`);
 
     // Soft delete - mark as deleted instead of hard delete
-    user.isDeleted = true;
-    user.deletedAt = new Date();
-    await user.save();
+    await User.findByIdAndUpdate(id, {
+      isDeleted: true,
+      deletedAt: new Date()
+    });
     console.log(`[ADMIN DELETE] User marked as deleted`);
 
     console.log(`[ADMIN] User deleted: ${user.email}`);
