@@ -190,6 +190,7 @@ export const getAdminInfo = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(`[ADMIN DELETE] Attempting to delete user ID: ${id}`);
 
     // Prevent deleting self
     if (id === req.user._id.toString()) {
@@ -199,8 +200,18 @@ export const deleteUser = async (req, res) => {
     const user = await User.findById(id);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      console.log(`[ADMIN DELETE] User NOT FOUND in database for ID: ${id}`);
+      return res.status(404).json({ message: 'User not found in database' });
     }
+
+    // Prevent deleting other admins
+    if (user.isAdmin) {
+      console.log(`[ADMIN DELETE] Cannot delete admin user: ${user.email}`);
+      return res.status(400).json({ message: 'Cannot delete admin users' });
+    }
+    
+    console.log(`[ADMIN DELETE] Found user: ${user.email}. Proceeding with deletion...`);
+
 
     // Delete user
     await User.findByIdAndDelete(id);
