@@ -225,16 +225,10 @@ export const deleteUser = async (req, res) => {
       ]
     });
 
-    // Remove user from rooms
-    await Room.updateMany(
-      { members: id },
-      { $pull: { members: id } }
-    );
-
     // Remove user from music rooms
     await MusicRoom.updateMany(
-      { members: id },
-      { $pull: { members: id } }
+      { users: id },
+      { $pull: { users: id } }
     );
 
     console.log(`[ADMIN] User deleted: ${user.email}`);
