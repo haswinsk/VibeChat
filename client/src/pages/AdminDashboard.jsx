@@ -203,13 +203,15 @@ const AdminDashboard = () => {
                       {new Date(u.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <button
-                        onClick={() => handleDeleteUser(u._id, u.name)}
-                        className="inline-flex items-center gap-1 bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-red-300 px-3 py-1 rounded transition text-xs font-medium"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        Delete
-                      </button>
+                      {!u.isAdmin && (
+                        <button
+                          onClick={() => handleDeleteUser(u._id, u.name)}
+                          className="inline-flex items-center gap-1 bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-red-300 px-3 py-1 rounded transition text-xs font-medium"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Delete
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
