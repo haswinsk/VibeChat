@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import api from '../services/api';
+import { socket } from '../socket/socket';
 
 const useChatStore = create((set, get) => ({
   users: [],
@@ -36,6 +37,8 @@ const useChatStore = create((set, get) => ({
     try {
       const { data } = await api.post('/messages/send', messageData);
       set((state) => ({ messages: [...state.messages, data] }));
+      // Emit socket event to refresh users list
+      socket.emit('messageSent');
       return data;
     } catch (error) {
       console.error('Error sending message:', error);

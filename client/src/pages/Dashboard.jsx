@@ -9,7 +9,7 @@ import { socket } from '../socket/socket';
 
 const Dashboard = () => {
   const { user } = useAuthStore();
-  const { addMessage, selectedUser, updateUserStatus, markMessagesAsRead, updateMessagesAsReadByReceiver, updateMessageLocally } = useChatStore();
+  const { addMessage, selectedUser, updateUserStatus, markMessagesAsRead, updateMessagesAsReadByReceiver, updateMessageLocally, getUsers } = useChatStore();
   const { joinMusicRoom } = useMusic();
 
   useEffect(() => {
@@ -30,10 +30,17 @@ const Dashboard = () => {
         } else {
           useChatStore.getState().incrementUnreadCount(senderId);
         }
+        // Refresh users list to re-sort by latest message
+        getUsers();
       });
 
       socket.on('messagesRead', ({ readerId }) => {
         updateMessagesAsReadByReceiver(readerId);
+      });
+
+      socket.on('messageSent', () => {
+        // Refresh users list when any message is sent
+        getUsers();
       });
 
       socket.on('inviteStatusUpdated', (updatedMessage) => {
@@ -63,13 +70,14 @@ const Dashboard = () => {
 
       return () => {
         socket.off('receiveMessage');
+        socket.off('messageSent');
         socket.off('updateUserStatus');
         socket.off('messagesRead');
         socket.off('inviteStatusUpdated');
         socket.disconnect();
       };
     }
-  }, [user?._id, joinMusicRoom]);
+  }, [user?._id, joinMusicRoom, getUsers]);
 
   return (
     <div className="h-screen flex flex-col bg-dark-bg overflow-hidden">
