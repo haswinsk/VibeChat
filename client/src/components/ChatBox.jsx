@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Send, Image as ImageIcon, Loader2, Download, Trash2, CheckCheck, Music, ArrowLeft, Mic } from 'lucide-react';
+import { Send, Image as ImageIcon, Loader2, Download, Trash2, CheckCheck, Mic } from 'lucide-react';
 import useChatStore from '../store/useChatStore';
 import useAuthStore from '../store/useAuthStore';
 import { socket } from '../socket/socket';
@@ -7,6 +7,7 @@ import api from '../services/api';
 import { useMusic } from '../context/MusicContext';
 import VoiceRecorder from './VoiceRecorder';
 import VoiceMessagePlayer from './VoiceMessagePlayer';
+import ChatHeader from './ChatHeader';
 
 const ChatBox = () => {
   const { selectedUser, setSelectedUser, messages, getMessages, isMessagesLoading, sendMessage, clearChat, markMessagesAsRead, sendMusicInvite, updateInviteStatus } = useChatStore();
@@ -167,58 +168,8 @@ const ChatBox = () => {
 
   return (
     <div className={`flex-1 flex flex-col bg-[#0b101a] h-full overflow-hidden transition-all duration-300 ${activeRoomId && !isMinimized ? 'pb-32 md:pb-24' : ''}`}>
-      {/* Chat Header */}
-      <div className="p-4 bg-dark-surface border-b border-dark-border flex items-center gap-2 sm:gap-3">
-        <button
-          onClick={() => setSelectedUser(null)}
-          className="md:hidden mr-1 text-gray-400 hover:text-white p-1 rounded-lg hover:bg-dark-bg transition-colors"
-          title="Back to user list"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold overflow-hidden shrink-0">
-          {selectedUser.profilePic ? (
-            <img src={selectedUser.profilePic} alt={selectedUser.name} className="w-full h-full object-cover" />
-          ) : (
-            selectedUser.name.charAt(0).toUpperCase()
-          )}
-        </div>
-        <div className="flex-1">
-          <h3 className="font-medium text-white">{selectedUser.name}</h3>
-          <p className="text-xs text-gray-400">{selectedUser.onlineStatus ? 'Online' : 'Offline'}</p>
-        </div>
-
-        <button
-          onClick={async () => {
-            const inviteMsg = await sendMusicInvite(selectedUser._id);
-            if (inviteMsg) {
-              socket.emit('sendMessage', {
-                receiverId: selectedUser._id,
-                message: inviteMsg,
-              });
-            }
-          }}
-          className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all shadow-sm ${activeRoomId === [user._id, selectedUser._id].sort().join('_')
-              ? 'bg-primary-dark text-white ring-2 ring-primary ring-offset-2 ring-offset-dark-surface'
-              : 'bg-primary hover:bg-primary-dark text-white'
-            }`}
-        >
-          <Music className="w-4 h-4" />
-          <span className="hidden sm:inline">Listen Together</span>
-        </button>
-
-        <button
-          onClick={() => {
-            if (window.confirm('Are you sure you want to clear this chat? This will only clear it for you.')) {
-              clearChat(selectedUser._id);
-            }
-          }}
-          className="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-full hover:bg-dark-bg"
-          title="Clear Chat"
-        >
-          <Trash2 className="w-5 h-5" />
-        </button>
-      </div>
+      {/* Chat Header Component */}
+      <ChatHeader />
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
