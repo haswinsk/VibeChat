@@ -25,6 +25,7 @@ export const initSocket = (server) => {
     socket.on('userConnected', async (userId) => {
       userSocketMap[userId] = socket.id;
       console.log('[SOCKET] User connected:', userId, 'socket:', socket.id);
+      await User.findByIdAndUpdate(userId, { onlineStatus: true });
       io.emit('updateUserStatus', { userId, isOnline: true });
     });
 
