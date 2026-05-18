@@ -1,5 +1,6 @@
 import Message from '../models/Message.js';
 import User from '../models/User.js';
+import { getIo } from '../socket/socket.js';
 
 // @desc    Get messages between current user and another user
 // @route   GET /api/messages/:userId
@@ -55,6 +56,15 @@ export const sendMessage = async (req, res) => {
 
     // Populate sender info if needed
     await newMessage.populate('senderId', 'name profilePic');
+
+    // Emit socket event to notify receiver and all users
+    try {
+      const io = getIo();
+      io.emit('receiveMessage', newMessage);
+      io.emit('userListUpdated'); // Notify all clients to refresh user list
+    } catch (error) {
+      console.log('[SOCKET] Warning: Could not emit socket event:', error.message);
+    }
 
     res.status(201).json(newMessage);
   } catch (error) {

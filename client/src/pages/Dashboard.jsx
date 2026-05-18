@@ -43,6 +43,11 @@ const Dashboard = () => {
         getUsers();
       });
 
+      socket.on('userListUpdated', () => {
+        // Server notified us to refresh user list
+        getUsers();
+      });
+
       socket.on('inviteStatusUpdated', (updatedMessage) => {
         updateMessageLocally(updatedMessage);
         
@@ -71,6 +76,7 @@ const Dashboard = () => {
       return () => {
         socket.off('receiveMessage');
         socket.off('messageSent');
+        socket.off('userListUpdated');
         socket.off('updateUserStatus');
         socket.off('messagesRead');
         socket.off('inviteStatusUpdated');
