@@ -183,3 +183,60 @@ export const getAdminInfo = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch admin info' });
   }
 };
+
+// @desc    Delete a user
+// @route   DELETE /api/admin/users/:id
+// @access  Private/Admin
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Prevent deleting self
+    if (id === req.user._id.toString()) {
+      return res.status(400).json({ message: 'Cannot delete your own admin account' });
+    }
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Delete user
+    await User.findByIdAndDelete(id);
+
+    // Delete all messages from/to this user
+    await Message.deleteMany({
+      $or: [
+        { senderId: id },
+        { receiverId: id }
+      ]
+    });
+
+    // Remove user from rooms
+    await Room.updateMany(
+      { members: id },
+      { $pull: { members: id } }
+    );
+
+    // Remove user from music rooms
+    await MusicRoom.updateMany(
+      { members: id },
+      { $pull: { members: id } }
+    );
+
+    console.log(`[ADMIN] User deleted: ${user.email}`);
+
+    res.status(200).json({
+      message: `User ${user.name} has been deleted successfully`,
+      deletedUser: {
+        _id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error('[ADMIN] Error deleting user:', error);
+    res.status(500).json({ message: 'Failed to delete user' });
+  }
+};

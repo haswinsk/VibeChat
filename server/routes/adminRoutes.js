@@ -6,7 +6,8 @@ import {
   toggleUserAdmin,
   getRecentActivity,
   getAllRooms,
-  getAdminInfo
+  getAdminInfo,
+  deleteUser
 } from '../controllers/adminController.js';
 import { adminProtect } from '../middleware/adminMiddleware.js';
 
@@ -25,6 +26,7 @@ router.get('/me', getAdminInfo);
 router.get('/users', getAllUsers);
 router.get('/users/:id', getUserById);
 router.put('/users/:id/toggle-admin', toggleUserAdmin);
+router.delete('/users/:id', deleteUser);
 
 // Activity monitoring
 router.get('/activity', getRecentActivity);

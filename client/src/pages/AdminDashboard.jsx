@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Users, MessageSquare, Radio, Zap, LogOut } from 'lucide-react';
+import { Users, MessageSquare, Radio, Zap, LogOut, Trash2 } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 import api from '../services/api';
 
@@ -48,6 +48,20 @@ const AdminDashboard = () => {
     
     // Redirect to login
     window.location.href = '/admin-login';
+  };
+
+  const handleDeleteUser = async (userId, userName) => {
+    if (window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+      try {
+        await api.delete(`/admin/users/${userId}`);
+        console.log(`[ADMIN] User deleted: ${userName}`);
+        // Refresh users list
+        fetchAdminData();
+      } catch (err) {
+        console.error('[ADMIN] Error deleting user:', err);
+        alert(`Failed to delete user: ${err.response?.data?.message || 'Unknown error'}`);
+      }
+    }
   };
 
   if (loading && !stats) {
@@ -161,6 +175,7 @@ const AdminDashboard = () => {
                   <th className="text-left py-3 px-4 text-gray-400">Status</th>
                   <th className="text-left py-3 px-4 text-gray-400">Admin</th>
                   <th className="text-left py-3 px-4 text-gray-400">Joined</th>
+                  <th className="text-center py-3 px-4 text-gray-400">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -186,6 +201,15 @@ const AdminDashboard = () => {
                     </td>
                     <td className="py-3 px-4 text-gray-500">
                       {new Date(u.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <button
+                        onClick={() => handleDeleteUser(u._id, u.name)}
+                        className="inline-flex items-center gap-1 bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-red-300 px-3 py-1 rounded transition text-xs font-medium"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
