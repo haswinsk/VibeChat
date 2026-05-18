@@ -8,11 +8,19 @@ const api = axios.create({
 // Add a request interceptor to include the token in the Authorization header
 api.interceptors.request.use(
   (config) => {
-    const authStore = JSON.parse(localStorage.getItem('auth-storage'));
-    const token = authStore?.state?.user?.token;
-    
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const authStorageStr = localStorage.getItem('auth-storage');
+      if (authStorageStr) {
+        const authStore = JSON.parse(authStorageStr);
+        const token = authStore?.state?.user?.token;
+        
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+          console.log('[API] Token added to headers');
+        }
+      }
+    } catch (error) {
+      console.error('[API] Error reading token from localStorage:', error);
     }
     return config;
   },

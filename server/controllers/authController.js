@@ -6,22 +6,33 @@ import generateToken from '../utils/generateToken.js';
 // @access  Public
 export const authUser = async (req, res) => {
   const { email, password } = req.body;
+  console.log('[LOGIN] Attempting login for email:', email);
 
   const user = await User.findOne({ email });
 
-  if (user && (await user.matchPassword(password))) {
-    const token = generateToken(res, user._id);
-
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      profilePic: user.profilePic,
-      token: token, // return token explicitly for client use as fallback
-    });
-  } else {
+  if (!user) {
+    console.log('[LOGIN] User not found:', email);
     res.status(401).json({ message: 'Invalid email or password' });
+    return;
   }
+
+  const isPasswordValid = await user.matchPassword(password);
+  if (!isPasswordValid) {
+    console.log('[LOGIN] Invalid password for user:', email);
+    res.status(401).json({ message: 'Invalid email or password' });
+    return;
+  }
+
+  console.log('[LOGIN] Login successful for:', email);
+  const token = generateToken(res, user._id);
+
+  res.json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    profilePic: user.profilePic,
+    token: token,
+  });
 };
 
 // @desc    Register a new user
@@ -44,13 +55,15 @@ export const registerUser = async (req, res) => {
   });
 
   if (user) {
-    generateToken(res, user._id);
+    console.log('[SIGNUP] New user created:', email);
+    const token = generateToken(res, user._id);
 
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       profilePic: user.profilePic,
+      token: token,
     });
   } else {
     res.status(400).json({ message: 'Invalid user data' });
