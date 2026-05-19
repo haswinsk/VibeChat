@@ -6,6 +6,9 @@ import Message from '../models/Message.js';
 let io;
 const userSocketMap = {}; // userId: socketId
 
+export const getIo = () => io;
+export const getUserSocketId = (userId) => userSocketMap[userId];
+
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {

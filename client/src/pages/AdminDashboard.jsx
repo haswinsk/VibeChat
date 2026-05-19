@@ -50,16 +50,17 @@ const AdminDashboard = () => {
     window.location.href = '/admin-login';
   };
 
-  const handleDeleteUser = async (userId, userName) => {
-    if (window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+  const handleToggleBan = async (userId, userName, isBanned) => {
+    const action = isBanned ? 'unban' : 'ban';
+    if (window.confirm(`Are you sure you want to ${action} user "${userName}"?`)) {
       try {
-        await api.delete(`/admin/users/${userId}`);
-        console.log(`[ADMIN] User deleted: ${userName}`);
+        await api.put(`/admin/users/${userId}/toggle-ban`);
+        console.log(`[ADMIN] User ${action}ned: ${userName}`);
         // Refresh users list
         fetchAdminData();
       } catch (err) {
-        console.error('[ADMIN] Error deleting user:', err);
-        alert(`Failed to delete user: ${err.response?.data?.message || 'Unknown error'}`);
+        console.error(`[ADMIN] Error ${action}ning user:`, err);
+        alert(`Failed to ${action} user: ${err.response?.data?.message || 'Unknown error'}`);
       }
     }
   };
@@ -180,16 +181,18 @@ const AdminDashboard = () => {
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u._id} className="border-b border-dark-border hover:bg-dark-bg transition">
+                  <tr key={u._id} className={`border-b border-dark-border hover:bg-dark-bg transition ${u.isBanned ? 'opacity-50' : ''}`}>
                     <td className="py-3 px-4 font-medium">{u.name}</td>
                     <td className="py-3 px-4 text-gray-400">{u.email}</td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        u.onlineStatus
+                        u.isBanned
+                          ? 'bg-red-500/20 text-red-400'
+                          : u.onlineStatus
                           ? 'bg-green-500/20 text-green-400'
                           : 'bg-gray-500/20 text-gray-400'
                       }`}>
-                        {u.onlineStatus ? 'Online' : 'Offline'}
+                        {u.isBanned ? 'Banned' : u.onlineStatus ? 'Online' : 'Offline'}
                       </span>
                     </td>
                     <td className="py-3 px-4">
@@ -205,11 +208,16 @@ const AdminDashboard = () => {
                     <td className="py-3 px-4 text-center">
                       {!u.isAdmin && (
                         <button
-                          onClick={() => handleDeleteUser(u._id, u.name)}
-                          className="inline-flex items-center gap-1 bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-red-300 px-3 py-1 rounded transition text-xs font-medium"
+                          onClick={() => handleToggleBan(u._id, u.name, u.isBanned)}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded transition text-xs font-medium ${
+                            u.isBanned
+                              ? 'bg-green-600/20 hover:bg-green-600/40 text-green-400 hover:text-green-300'
+                              : 'bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-red-300'
+                          }`}
+                          title={u.isBanned ? 'Unban User' : 'Ban User'}
                         >
-                          <Trash2 className="w-3 h-3" />
-                          Delete
+                          {u.isBanned ? <Zap className="w-3 h-3" /> : <Trash2 className="w-3 h-3" />}
+                          {u.isBanned ? 'Unban' : 'Ban'}
                         </button>
                       )}
                     </td>

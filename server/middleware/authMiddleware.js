@@ -18,6 +18,17 @@ const protect = async (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.userId).select('-password');
+
+      if (!req.user) {
+        console.log(`[AUTH] User not found for token.`);
+        return res.status(401).json({ message: 'Your account has been removed.' });
+      }
+
+      if (req.user.isBanned) {
+        console.log(`[AUTH] Banned user attempt: ${req.user.email}`);
+        return res.status(401).json({ message: 'Your account has been banned.' });
+      }
+
       console.log('[AUTH] Token verified successfully for user:', req.user?.email);
       next();
     } catch (error) {

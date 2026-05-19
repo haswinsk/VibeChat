@@ -20,7 +20,7 @@ export const adminProtect = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.userId); // Use decoded.userId to match authMiddleware
 
     // User must exist
     if (!user) {
@@ -32,6 +32,12 @@ export const adminProtect = async (req, res, next) => {
     if (!user.isAdmin) {
       console.log(`[ADMIN] Access denied - ${user.email} is not admin`);
       return res.status(403).json({ message: 'Forbidden - Admin access required' });
+    }
+
+    // User must not be banned
+    if (user.isBanned) {
+      console.log(`[ADMIN] Banned admin attempt: ${user.email}`);
+      return res.status(403).json({ message: 'Forbidden - Your admin account is banned' });
     }
 
     // Optional: Verify ADMIN_EMAIL if set

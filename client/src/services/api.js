@@ -1,4 +1,6 @@
 import axios from 'axios';
+import useAuthStore from '../store/useAuthStore';
+import { toastError } from '../components/ToastProvider';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
@@ -45,6 +47,25 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add a response interceptor to handle 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Only auto-logout and redirect if NOT on auth routes
+      const isAuthRoute = error.config.url.includes('/auth/login') || error.config.url.includes('/auth/signup');
+      
+      if (!isAuthRoute) {
+        const message = error.response.data.message || 'Your session has expired. Please log in again.';
+        toastError(message);
+        useAuthStore.getState().logout();
+        window.location.href = '/login';
+      }
+    }
     return Promise.reject(error);
   }
 );

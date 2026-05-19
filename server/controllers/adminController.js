@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import Message from '../models/Message.js';
 import Room from '../models/Room.js';
 import MusicRoom from '../models/MusicRoom.js';
+import { getIo, getUserSocketId } from '../socket/socket.js';
 
 // @desc    Get admin dashboard stats
 // @route   GET /api/admin/stats
@@ -184,50 +185,55 @@ export const getAdminInfo = async (req, res) => {
   }
 };
 
-// @desc    Delete a user
-// @route   DELETE /api/admin/users/:id
+// @desc    Ban or unban a user
+// @route   PUT /api/admin/users/:id/toggle-ban
 // @access  Private/Admin
-export const deleteUser = async (req, res) => {
+export const toggleUserBan = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(`[ADMIN DELETE] Attempting to delete user ID: ${id}`);
 
-    // Prevent deleting self
+    // Prevent banning self
     if (id === req.user._id.toString()) {
-      return res.status(400).json({ message: 'Cannot delete your own admin account' });
+      return res.status(400).json({ message: 'Cannot ban your own admin account' });
     }
 
     const user = await User.findById(id);
 
     if (!user) {
-      console.log(`[ADMIN DELETE] User NOT FOUND in database for ID: ${id}`);
-      return res.status(404).json({ message: 'User not found in database' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // Prevent deleting other admins
-    if (user.isAdmin) {
-      console.log(`[ADMIN DELETE] Cannot delete admin user: ${user.email}`);
-      return res.status(400).json({ message: 'Cannot delete admin users' });
+    user.isBanned = !user.isBanned;
+    await user.save();
+
+    console.log(`[ADMIN] User ${user.email} has been ${user.isBanned ? 'banned' : 'unbanned'}`);
+
+    if (user.isBanned) {
+      const userSocketId = getUserSocketId(user._id.toString());
+      if (userSocketId) {
+        const io = getIo();
+        io.to(userSocketId).emit('force-logout', { message: 'Your account has been banned.' });
+        
+        const socket = io.sockets.sockets.get(userSocketId);
+        if (socket) {
+          socket.disconnect();
+        }
+        
+        console.log(`[ADMIN] Forcefully disconnected user: ${user.email}`);
+      }
     }
-    
-    console.log(`[ADMIN DELETE] Found user: ${user.email}. Proceeding with deletion...`);
-
-    // Hard delete - actually remove user from database
-    await User.findByIdAndDelete(id);
-    console.log(`[ADMIN DELETE] User deleted from database`);
-
-    console.log(`[ADMIN] User deleted: ${user.email}`);
 
     res.status(200).json({
-      message: `User ${user.name} has been deleted successfully`,
-      deletedUser: {
+      message: `User has been ${user.isBanned ? 'banned' : 'unbanned'}`,
+      user: {
         _id: user._id,
+        email: user.email,
         name: user.name,
-        email: user.email
-      }
+        isBanned: user.isBanned,
+      },
     });
   } catch (error) {
-    console.error('[ADMIN] Error deleting user:', error);
-    res.status(500).json({ message: 'Failed to delete user' });
+    console.error('[ADMIN] Error toggling user ban:', error);
+    res.status(500).json({ message: 'Failed to update user' });
   }
 };

@@ -6,9 +6,10 @@ import useAuthStore from '../store/useAuthStore';
 import useChatStore from '../store/useChatStore';
 import { useMusic } from '../context/MusicContext';
 import { socket } from '../socket/socket';
+import { toastError } from '../components/ToastProvider';
 
 const Dashboard = () => {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const { addMessage, selectedUser, updateUserStatus, markMessagesAsRead, updateMessagesAsReadByReceiver, updateMessageLocally, moveUserToTop } = useChatStore();
   const { joinMusicRoom } = useMusic();
 
@@ -16,6 +17,12 @@ const Dashboard = () => {
     if (user) {
       socket.connect();
       socket.emit('userConnected', user._id);
+
+      socket.on('force-logout', (data) => {
+        toastError(data.message);
+        logout();
+        window.location.href = '/login';
+      });
 
       socket.on('receiveMessage', (message) => {
         console.log('[SOCKET] Received message, moving user to top...');
@@ -86,10 +93,11 @@ const Dashboard = () => {
         socket.off('updateUserStatus');
         socket.off('messagesRead');
         socket.off('inviteStatusUpdated');
+        socket.off('force-logout');
         socket.disconnect();
       };
     }
-  }, [user?._id, joinMusicRoom]);
+  }, [user?._id, joinMusicRoom, logout]);
 
   return (
     <div className="h-screen flex flex-col bg-dark-bg overflow-hidden">

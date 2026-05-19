@@ -37,6 +37,12 @@ export const authUser = async (req, res) => {
     return;
   }
 
+  if (user.isBanned) {
+    console.log('[LOGIN] Banned user login attempt:', email);
+    res.status(401).json({ message: 'Your account has been banned.' });
+    return;
+  }
+
   console.log('[LOGIN] Login successful for:', email);
   const token = generateToken(res, user._id);
 
@@ -57,41 +63,46 @@ export const authUser = async (req, res) => {
 // @route   POST /api/auth/signup
 // @access  Public
 export const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  try {
+    const { name, email, password } = req.body;
 
-  const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email });
 
-  if (userExists) {
-    res.status(400).json({ message: 'User already exists' });
-    return;
-  }
+    if (userExists) {
+      res.status(400).json({ message: 'User already exists' });
+      return;
+    }
 
-  const publicId = await generateUniquePublicId(name);
+    const publicId = await generateUniquePublicId(name);
 
-  const user = await User.create({
-    name,
-    email,
-    password,
-    publicId,
-  });
+    const user = await User.create({
+      name,
+      email,
+      password,
+      publicId,
+    });
 
-  if (user) {
-    console.log('[SIGNUP] New user created:', email);
-    const token = generateToken(res, user._id);
+    if (user) {
+      console.log('[SIGNUP] New user created:', email);
+      const token = generateToken(res, user._id);
 
-    console.log('[SIGNUP] About to send response with token:', token ? 'Present' : 'MISSING');
-    const response = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      profilePic: user.profilePic,
-      publicId: user.publicId,
-      token: token,
-    };
-    console.log('[SIGNUP] Response object:', response);
-    res.status(201).json(response);
-  } else {
-    res.status(400).json({ message: 'Invalid user data' });
+      console.log('[SIGNUP] About to send response with token:', token ? 'Present' : 'MISSING');
+      const response = {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        profilePic: user.profilePic,
+        publicId: user.publicId,
+        token: token,
+      };
+      console.log('[SIGNUP] Response object:', response);
+      res.status(201).json(response);
+    } else {
+      res.status(400).json({ message: 'Invalid user data' });
+    }
+  } catch (error) {
+    console.error('[SIGNUP] Error during user creation:', error.message);
+    res.status(500).json({ message: 'Failed to create account. Please try again.' });
   }
 };
 
