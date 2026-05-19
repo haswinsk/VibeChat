@@ -96,13 +96,17 @@ export const registerUser = async (req, res) => {
 
     let publicId;
     try {
+      console.log('[SIGNUP] Generating publicId for name:', name);
       publicId = await generateUniquePublicId(name);
+      console.log('[SIGNUP] PublicId generated successfully:', publicId);
     } catch (error) {
       console.error('[SIGNUP] PublicId generation failed, using fallback:', error.message);
       // Fallback: use email-based publicId
       publicId = `@${email.split('@')[0]}${Math.floor(Math.random() * 10000)}`;
+      console.log('[SIGNUP] Using fallback publicId:', publicId);
     }
 
+    console.log('[SIGNUP] About to create user with:', { name, email, publicId });
     const user = await User.create({
       name,
       email,
@@ -110,8 +114,10 @@ export const registerUser = async (req, res) => {
       publicId,
     });
 
-    console.log('[SIGNUP] New user created:', email);
+    console.log('[SIGNUP] User creation successful, user._id:', user._id);
+    console.log('[SIGNUP] About to generate token');
     const token = generateToken(res, user._id);
+    console.log('[SIGNUP] Token generated:', token ? 'Success' : 'Failed');
 
     const response = {
       _id: user._id,
