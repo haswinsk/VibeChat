@@ -21,18 +21,24 @@ const ProtectedAdminRoute = ({ children }) => {
         }
 
         // Verify token with backend
-        const response = await api.get('/admin-auth/verify');
-        
-        if (response.data.valid) {
-          console.log('[ADMIN ROUTE] Admin access verified');
-          setIsValidAdmin(true);
-        } else {
-          console.warn('[ADMIN ROUTE] Admin verification failed');
+        try {
+          const response = await api.get('/admin-auth/verify');
+          
+          if (response.data.valid) {
+            console.log('[ADMIN ROUTE] Admin access verified');
+            setIsValidAdmin(true);
+          } else {
+            console.warn('[ADMIN ROUTE] Admin verification failed - invalid response');
+            setIsValidAdmin(false);
+          }
+        } catch (apiError) {
+          // Verification failed - token is invalid/expired
+          console.log('[ADMIN ROUTE] Admin token verification failed:', apiError.response?.status);
+          localStorage.removeItem('admin-token');
           setIsValidAdmin(false);
         }
       } catch (error) {
-        console.error('[ADMIN ROUTE] Verification error:', error.message);
-        // Clear invalid token
+        console.error('[ADMIN ROUTE] Unexpected error:', error.message);
         localStorage.removeItem('admin-token');
         setIsValidAdmin(false);
       } finally {

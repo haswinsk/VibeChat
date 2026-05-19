@@ -56,10 +56,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Only auto-logout and redirect if NOT on auth routes
-      const isAuthRoute = error.config.url.includes('/auth/login') || error.config.url.includes('/auth/signup');
+      // Exclude these routes from auto-logout redirect
+      const excludedRoutes = [
+        '/auth/login',
+        '/auth/signup',
+        '/admin-auth/verify', // Admin verification should just return 401, not redirect
+      ];
       
-      if (!isAuthRoute) {
+      const isExcludedRoute = excludedRoutes.some(route => error.config.url.includes(route));
+      
+      if (!isExcludedRoute) {
         const message = error.response.data.message || 'Your session has expired. Please log in again.';
         toastError(message);
         useAuthStore.getState().logout();
