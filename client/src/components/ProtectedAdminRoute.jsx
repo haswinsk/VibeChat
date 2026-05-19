@@ -1,7 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import useAuthStore from '../store/useAuthStore';
-import api from '../services/api';
 
 const ProtectedAdminRoute = ({ children }) => {
   const { user, logout } = useAuthStore();
@@ -20,25 +19,35 @@ const ProtectedAdminRoute = ({ children }) => {
           return;
         }
 
-        // Verify token with backend
-        try {
-          const response = await api.get('/admin-auth/verify');
-          
-          if (response.data.valid) {
-            console.log('[ADMIN ROUTE] Admin access verified');
+        // Use fetch directly to avoid axios interceptors
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const response = await fetch(`${apiUrl}/admin-auth/verify`, {
+          method: 'GET',
+          credentials: 'include', // Include cookies
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log('[ADMIN ROUTE] Verify response status:', response.status);
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.valid) {
+            console.log('[ADMIN ROUTE] Admin access verified successfully');
             setIsValidAdmin(true);
           } else {
-            console.warn('[ADMIN ROUTE] Admin verification failed - invalid response');
+            console.warn('[ADMIN ROUTE] Verification returned invalid');
             setIsValidAdmin(false);
           }
-        } catch (apiError) {
-          // Verification failed - token is invalid/expired
-          console.log('[ADMIN ROUTE] Admin token verification failed:', apiError.response?.status);
+        } else {
+          console.log('[ADMIN ROUTE] Verification failed with status:', response.status);
           localStorage.removeItem('admin-token');
           setIsValidAdmin(false);
         }
       } catch (error) {
-        console.error('[ADMIN ROUTE] Unexpected error:', error.message);
+        console.error('[ADMIN ROUTE] Verification error:', error.message);
         localStorage.removeItem('admin-token');
         setIsValidAdmin(false);
       } finally {
