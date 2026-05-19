@@ -56,10 +56,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Exclude these routes from auto-logout redirect
+      // Exclude these routes from auto-logout redirect and error toast
       const excludedRoutes = [
         '/auth/login',
         '/auth/signup',
+        '/auth/profile', // Initial auth check endpoint - expected to fail when not logged in
         '/admin-auth/verify', // Admin verification should just return 401, not redirect
       ];
       

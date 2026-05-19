@@ -16,9 +16,9 @@ const useAuthStore = create(
           const { data } = await api.get('/auth/profile');
           set({ user: data, isAuthenticated: true, error: null });
         } catch (error) {
-          if (error.response?.status === 401) {
-            set({ user: null, isAuthenticated: false, error: null });
-          }
+          // Handle any auth error (401, 404, network error, etc)
+          console.log('[AUTH STORE] checkAuth failed:', error.response?.status, error.message);
+          set({ user: null, isAuthenticated: false, error: null });
         } finally {
           set({ isLoading: false });
         }
