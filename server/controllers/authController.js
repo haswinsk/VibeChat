@@ -102,6 +102,7 @@ export const registerUser = async (req, res) => {
     }
   } catch (error) {
     console.error('[SIGNUP] Error during user creation:', error.message);
+    console.error('[SIGNUP] Full error stack:', error);
     res.status(500).json({ message: 'Failed to create account. Please try again.' });
   }
 };
