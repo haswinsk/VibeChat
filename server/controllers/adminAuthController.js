@@ -42,8 +42,8 @@ export const adminLogin = async (req, res) => {
       return res.status(403).json({ message: 'Access denied - Not authorized admin' });
     }
 
-    // Generate token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    // Generate token (use userId to match authMiddleware pattern)
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: '7d'
     });
 
@@ -91,7 +91,7 @@ export const verifyAdminAccess = async (req, res) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.userId);
 
     if (!user || !user.isAdmin) {
       return res.status(403).json({ message: 'Unauthorized' });

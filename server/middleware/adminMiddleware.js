@@ -20,7 +20,7 @@ export const adminProtect = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId); // Use decoded.userId to match authMiddleware
+    const user = await User.findById(decoded.userId);
 
     // User must exist
     if (!user) {
