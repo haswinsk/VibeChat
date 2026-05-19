@@ -2,61 +2,77 @@ import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
 
 const generateUniquePublicId = async (name) => {
-  let publicId;
-  let userExists = true;
-  const sanitizedName = name.toLowerCase().replace(/\s+/g, '');
-
-  while (userExists) {
-    const randomNumbers = Math.floor(1000 + Math.random() * 9000);
-    publicId = `@${sanitizedName}${randomNumbers}`;
-    userExists = await User.findOne({ publicId });
+  if (!name || typeof name !== 'string') {
+    throw new Error('Invalid name provided for publicId generation');
   }
 
-  return publicId;
+  let publicId;
+  const sanitizedName = name.toLowerCase().replace(/\s+/g, '');
+  const maxAttempts = 50;
+  let attempt = 0;
+
+  while (attempt < maxAttempts) {
+    const randomNumbers = Math.floor(1000 + Math.random() * 9000);
+    publicId = `@${sanitizedName}${randomNumbers}`;
+    
+    const existing = await User.findOne({ publicId }).lean();
+    if (!existing) {
+      return publicId;
+    }
+    attempt++;
+  }
+
+  throw new Error(`Failed to generate unique publicId after ${maxAttempts} attempts`);
 };
 
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
 // @access  Public
 export const authUser = async (req, res) => {
-  const { email, password } = req.body;
-  console.log('[LOGIN] Attempting login for email:', email);
+  try {
+    const { email, password } = req.body;
+    console.log('[LOGIN] Attempting login for email:', email);
 
-  const user = await User.findOne({ email });
+    const user = await User.findOne({ email });
 
-  if (!user) {
-    console.log('[LOGIN] User not found:', email);
-    res.status(401).json({ message: 'Invalid email or password' });
-    return;
+    if (!user) {
+      console.log('[LOGIN] User not found:', email);
+      res.status(401).json({ message: 'Invalid email or password' });
+      return;
+    }
+
+    const isPasswordValid = await user.matchPassword(password);
+    if (!isPasswordValid) {
+      console.log('[LOGIN] Invalid password for user:', email);
+      res.status(401).json({ message: 'Invalid email or password' });
+      return;
+    }
+
+    if (user.isBanned) {
+      console.log('[LOGIN] Banned user login attempt:', email);
+      res.status(401).json({ message: 'Your account has been banned.' });
+      return;
+    }
+
+    console.log('[LOGIN] Login successful for:', email);
+    const token = generateToken(res, user._id);
+
+    console.log('[LOGIN] About to send response with token:', token ? 'Present' : 'MISSING');
+    const response = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      profilePic: user.profilePic,
+      publicId: user.publicId,
+      token: token,
+    };
+    console.log('[LOGIN] Response object:', response);
+    res.json(response);
+  } catch (error) {
+    console.error('[LOGIN] Error during authentication:', error.message);
+    console.error('[LOGIN] Full error stack:', error);
+    res.status(500).json({ message: 'Authentication failed. Please try again.' });
   }
-
-  const isPasswordValid = await user.matchPassword(password);
-  if (!isPasswordValid) {
-    console.log('[LOGIN] Invalid password for user:', email);
-    res.status(401).json({ message: 'Invalid email or password' });
-    return;
-  }
-
-  if (user.isBanned) {
-    console.log('[LOGIN] Banned user login attempt:', email);
-    res.status(401).json({ message: 'Your account has been banned.' });
-    return;
-  }
-
-  console.log('[LOGIN] Login successful for:', email);
-  const token = generateToken(res, user._id);
-
-  console.log('[LOGIN] About to send response with token:', token ? 'Present' : 'MISSING');
-  const response = {
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    profilePic: user.profilePic,
-    publicId: user.publicId,
-    token: token,
-  };
-  console.log('[LOGIN] Response object:', response);
-  res.json(response);
 };
 
 // @desc    Register a new user
