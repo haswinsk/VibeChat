@@ -124,9 +124,3 @@ export const getUserProfile = async (req, res) => {
     res.status(404).json({ message: 'User not found' });
   }
 };
-      profilePic: user.profilePic,
-    });
-  } else {
-    res.status(404).json({ message: 'User not found' });
-  }
-};
