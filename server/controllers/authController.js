@@ -82,6 +82,11 @@ export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    if (!name || !email || !password) {
+      res.status(400).json({ message: 'Please provide name, email, and password' });
+      return;
+    }
+
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -89,7 +94,14 @@ export const registerUser = async (req, res) => {
       return;
     }
 
-    const publicId = await generateUniquePublicId(name);
+    let publicId;
+    try {
+      publicId = await generateUniquePublicId(name);
+    } catch (error) {
+      console.error('[SIGNUP] PublicId generation failed, using fallback:', error.message);
+      // Fallback: use email-based publicId
+      publicId = `@${email.split('@')[0]}${Math.floor(Math.random() * 10000)}`;
+    }
 
     const user = await User.create({
       name,
@@ -98,27 +110,22 @@ export const registerUser = async (req, res) => {
       publicId,
     });
 
-    if (user) {
-      console.log('[SIGNUP] New user created:', email);
-      const token = generateToken(res, user._id);
+    console.log('[SIGNUP] New user created:', email);
+    const token = generateToken(res, user._id);
 
-      console.log('[SIGNUP] About to send response with token:', token ? 'Present' : 'MISSING');
-      const response = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        profilePic: user.profilePic,
-        publicId: user.publicId,
-        token: token,
-      };
-      console.log('[SIGNUP] Response object:', response);
-      res.status(201).json(response);
-    } else {
-      res.status(400).json({ message: 'Invalid user data' });
-    }
+    const response = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      profilePic: user.profilePic,
+      publicId: user.publicId,
+      token: token,
+    };
+    console.log('[SIGNUP] Response sent successfully');
+    res.status(201).json(response);
   } catch (error) {
     console.error('[SIGNUP] Error during user creation:', error.message);
-    console.error('[SIGNUP] Full error stack:', error);
+    console.error('[SIGNUP] Full error:', error);
     res.status(500).json({ message: 'Failed to create account. Please try again.' });
   }
 };
