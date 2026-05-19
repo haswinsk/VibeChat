@@ -243,10 +243,3 @@ export const initSocket = (server) => {
 
   return io;
 };
-
-export const getIo = () => {
-  if (!io) {
-    throw new Error('Socket.io not initialized');
-  }
-  return io;
-};
