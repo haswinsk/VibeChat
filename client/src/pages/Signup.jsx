@@ -9,6 +9,16 @@ const Signup = () => {
   const [password, setPassword] = useState('');
   const { signup, isAuthenticated, isLoading, error } = useAuthStore();
 
+  // While the app is checking auth, show a loading spinner
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-dark-bg">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // If authenticated, redirect to dashboard
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
