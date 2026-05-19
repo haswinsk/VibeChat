@@ -1,9 +1,17 @@
-import { LogOut } from 'lucide-react';
+import { LogOut, Copy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore';
+import { toastSuccess } from './ToastProvider';
 
 const Navbar = () => {
   const { user, logout } = useAuthStore();
+
+  const handleCopy = () => {
+    if (user?.publicId) {
+      navigator.clipboard.writeText(user.publicId);
+      toastSuccess('Vibe ID copied to clipboard!');
+    }
+  };
 
   return (
     <header className="bg-dark-surface border-b border-dark-border py-3 px-6 flex items-center justify-between">
@@ -24,7 +32,15 @@ const Navbar = () => {
                 user?.name?.charAt(0).toUpperCase()
               )}
             </div>
-            <span className="text-sm font-medium text-gray-200 hidden sm:block">{user?.name}</span>
+            <div className="hidden sm:flex flex-col items-start">
+              <span className="text-sm font-medium text-gray-200">{user?.name}</span>
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-400">{user?.publicId}</span>
+                <button onClick={handleCopy} className="text-gray-400 hover:text-white" title="Copy Vibe ID">
+                  <Copy className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
           </div>
 
           <button

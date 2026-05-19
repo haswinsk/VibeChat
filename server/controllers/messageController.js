@@ -78,9 +78,16 @@ export const sendMessage = async (req, res) => {
 // @access  Private
 export const getUsersForSidebar = async (req, res) => {
   try {
-    // Return all users except the current user
-    const users = await User.find({ _id: { $ne: req.user._id } }).select('-password').lean();
-    
+    const currentUserId = req.user._id;
+
+    // Find all unique user IDs the current user has interacted with
+    const sentTo = await Message.distinct('receiverId', { senderId: currentUserId });
+    const receivedFrom = await Message.distinct('senderId', { receiverId: currentUserId });
+    const interactedUserIds = [...new Set([...sentTo, ...receivedFrom].map(id => id.toString()))];
+
+    // Fetch user details for the interacted users
+    const users = await User.find({ _id: { $in: interactedUserIds } }).select('-password').lean();
+
     const unreadCounts = await Message.aggregate([
       { $match: { receiverId: req.user._id, isRead: false } },
       { $group: { _id: '$senderId', count: { $sum: 1 } } }
@@ -105,34 +112,30 @@ export const getUsersForSidebar = async (req, res) => {
       {
         $group: {
           _id: {
-            $cond: [
-              { $eq: ['$senderId', req.user._id] },
-              '$receiverId',
-              '$senderId'
-            ]
+            $cond: {
+              if: { $eq: ['$senderId', req.user._id] },
+              then: '$receiverId',
+              else: '$senderId'
+            }
           },
-          lastMessageTime: { $first: '$createdAt' }
+          lastMessage: { $first: '$createdAt' }
         }
       }
     ]);
 
     const lastMessageMap = {};
     lastMessages.forEach(item => {
-      if (item._id) lastMessageMap[item._id.toString()] = item.lastMessageTime;
+      if(item._id) lastMessageMap[item._id.toString()] = item.lastMessage;
     });
 
     const usersWithUnread = users.map(user => ({
       ...user,
       unreadCount: unreadMap[user._id.toString()] || 0,
-      lastMessageTime: lastMessageMap[user._id.toString()] || null
+      lastMessageTimestamp: lastMessageMap[user._id.toString()] || user.createdAt
     }));
 
-    // Sort by most recent message first
-    usersWithUnread.sort((a, b) => {
-      const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
-      const timeB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
-      return timeB - timeA;
-    });
+    // Sort by last message timestamp
+    usersWithUnread.sort((a, b) => new Date(b.lastMessageTimestamp) - new Date(a.lastMessageTimestamp));
 
     res.status(200).json(usersWithUnread);
   } catch (error) {

@@ -1,6 +1,20 @@
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
 
+const generateUniquePublicId = async (name) => {
+  let publicId;
+  let userExists = true;
+  const sanitizedName = name.toLowerCase().replace(/\s+/g, '');
+
+  while (userExists) {
+    const randomNumbers = Math.floor(1000 + Math.random() * 9000);
+    publicId = `@${sanitizedName}${randomNumbers}`;
+    userExists = await User.findOne({ publicId });
+  }
+
+  return publicId;
+};
+
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
 // @access  Public
@@ -32,6 +46,7 @@ export const authUser = async (req, res) => {
     name: user.name,
     email: user.email,
     profilePic: user.profilePic,
+    publicId: user.publicId,
     token: token,
   };
   console.log('[LOGIN] Response object:', response);
@@ -51,10 +66,13 @@ export const registerUser = async (req, res) => {
     return;
   }
 
+  const publicId = await generateUniquePublicId(name);
+
   const user = await User.create({
     name,
     email,
     password,
+    publicId,
   });
 
   if (user) {
@@ -67,6 +85,7 @@ export const registerUser = async (req, res) => {
       name: user.name,
       email: user.email,
       profilePic: user.profilePic,
+      publicId: user.publicId,
       token: token,
     };
     console.log('[SIGNUP] Response object:', response);
@@ -98,6 +117,13 @@ export const getUserProfile = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      profilePic: user.profilePic,
+      publicId: user.publicId,
+    });
+  } else {
+    res.status(404).json({ message: 'User not found' });
+  }
+};
       profilePic: user.profilePic,
     });
   } else {

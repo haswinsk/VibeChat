@@ -9,6 +9,16 @@ const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
 
+  addUser: (user) => {
+    set((state) => {
+      const userExists = state.users.some((u) => u._id === user._id);
+      if (!userExists) {
+        return { users: [user, ...state.users] };
+      }
+      return {};
+    });
+  },
+
   getUsers: async () => {
     set({ isUsersLoading: true });
     try {

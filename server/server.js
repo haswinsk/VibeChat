@@ -10,6 +10,7 @@ import roomRoutes from './routes/roomRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import adminAuthRoutes from './routes/adminAuthRoutes.js';
+import userRoutes from './routes/userRoutes.js'; // Import user routes
 import { initSocket } from './socket/socket.js';
 
 dotenv.config();
@@ -42,6 +43,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes); // Hidden admin routes
+app.use('/api/users', userRoutes); // Add user routes
 
 app.get('/', (req, res) => {
   res.send('API is running...');
