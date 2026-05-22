@@ -22,8 +22,8 @@ const Navbar = () => {
         <h1 className="text-xl font-bold text-white tracking-tight">VibeChat</h1>
       </Link>
 
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-3 border-l border-dark-border pl-6">
+      <div className="flex items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-3 border-l border-dark-border pl-3 sm:pl-6 min-w-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold overflow-hidden">
               {user?.profilePic ? (
@@ -32,11 +32,15 @@ const Navbar = () => {
                 user?.name?.charAt(0).toUpperCase()
               )}
             </div>
-            <div className="hidden sm:flex flex-col items-start">
-              <span className="text-sm font-medium text-gray-200">{user?.name}</span>
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-gray-400">{user?.publicId}</span>
-                <button onClick={handleCopy} className="text-gray-400 hover:text-white" title="Copy Vibe ID">
+            <div className="flex flex-col items-start min-w-0">
+              <span className="text-xs sm:text-sm font-medium text-gray-200 truncate max-w-28 sm:max-w-none">
+                {user?.name}
+              </span>
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-[11px] sm:text-xs text-gray-400 truncate max-w-28 sm:max-w-none">
+                  {user?.publicId}
+                </span>
+                <button onClick={handleCopy} className="text-gray-400 hover:text-white shrink-0" title="Copy Vibe ID">
                   <Copy className="w-3 h-3" />
                 </button>
               </div>
